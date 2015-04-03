@@ -11,36 +11,38 @@ app.use(bodyParser());
 var cors = require('cors');
 app.use(cors());
 
-
-
 app.get('/scraper', function(req, res) {
   var url = req.query.url;
-  read(url, function(err, article, meta) {
-    
-    res.status(200).jsonp({
-      url: url,
-      title: article.title,
-      content: article.content
-    })
- })
-  
+  read(url, function(err, article, meta) { 
+    if (article) {
+      res.status(200).jsonp({
+        url: url,
+        title: article.title,
+        content: article.content
+      })
+    } else {
+      res.sendStatus(400)
+    }
+  })
 });
+
 app.post('/scraper', cors(), function (req, res) {
   var url = req.body.url;
   if (!url) {
       return res.sendStatus(400);
-  
     } 
   read(url, function(err, article, meta) {
-    fb.child("articles").push({
-      url: url,
-      title: article.title,
-      content: article.content
-    });
-   res.sendStatus(res.statusCode);                                       
-  })
+    if (article) {
+        fb.child("articles").push({
+        url: url,
+        title: article.title,
+        content: article.content
+      });
+      res.sendStatus(res.statusCode);
+    } else {
+      res.sendStatus(500);
+    }
+  });
 });
-
-
 
 module.exports = app;
